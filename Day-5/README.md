@@ -1,4 +1,4 @@
-## Day-5: Persistence & Disaster Recovery with Velero
+## Day-5: Runtime Security + Secrets Management
 
 ---
 

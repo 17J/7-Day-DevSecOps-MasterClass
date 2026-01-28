@@ -1,4 +1,4 @@
-## Day-7: Production Networking – ALB Ingress & IAM (IRSA)
+## Day-7: End-to-End Demo + Documentation + Cleanup
 
 ---
 

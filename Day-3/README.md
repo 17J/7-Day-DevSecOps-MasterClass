@@ -1,4 +1,4 @@
-## Day-3: CI Pipeline – Automation & Shift-Left Security
+## Day-3: Persistent Storage + Disaster Recovery + GitOps
 
 ---
 

@@ -1,4 +1,4 @@
-## Day-1: IaC – Provisioning a Hardened EKS Cluster
+## Day-1: Infrastructure as Code + Container Security
 
 ---
 

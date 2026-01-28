@@ -1,4 +1,4 @@
-## Day-6: GitOps Excellence – Continuous Delivery with ArgoCD, Scalability & Performance Optimization
+## Day-6: Full-Stack Observability + Monitoring
 
 ---
 

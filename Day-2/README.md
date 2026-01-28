@@ -1,4 +1,4 @@
-## Day-2: Containerization & Zero-Vulnerability Images
+## Day-2: CI/CD Pipeline + Shift-Left Security
 
 ---
 
