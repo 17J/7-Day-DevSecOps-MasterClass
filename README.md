@@ -1,149 +1,225 @@
-# 🚀 10-Day DevSecOps Masterclass:
+# 🚀 7-Day DevSecOps Masterclass:
 
 ---
 
-## Day-0: The Blueprint – Architecture & Plan
+## **Target Audience:**
 
-## **Prerequisites:**
+- Basic understanding of AWS services
+- Docker and Kubernetes fundamentals
+- CI/CD concepts
+- Basic Linux commands
+- Git version control
+- GitOps deployment
 
-### 🛠️ Prerequisites & Environment Setup
+### 🛠️ Prerequisites Tools Required
 
-Ensure you have the following tools installed and configured before starting the Masterclass:
+**Cloud & Infrastructure:**
 
-- **Cloud Provider:**
-- **AWS Account** - [Create Free Tier Account](https://aws.amazon.com/free/)
-- **AWS CLI v2** - [Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) (Run `aws configure` after install)
-- **Infrastructure & Orchestration:**
-- **Terraform** - [Installation Guide](https://developer.hashicorp.com/terraform/install) (To provision VPC & EKS)
-- **eksctl** - [Installation Guide](https://www.google.com/search?q=https://eksctl.io/introduction/%23installation) (Official CLI for Amazon EKS)
-- **kubectl** - [Installation Guide](https://kubernetes.io/docs/tasks/tools/) (To interact with the cluster)
-- **Automation & Containerization:**
-- **Jenkins** - [Installation Guide](https://www.jenkins.io/doc/book/installing/) (CI/CD Server - Recommended on an EC2 t3.medium)
-- **Docker** - [Get Docker](https://www.google.com/search?q=https://docs.docs.docker.com/get-docker/) (To build and scan MERN images)
-- **Version Control:**
-- **Git** - [Download & Install](https://git-scm.com/downloads) (To manage your DevSecOps repository)
+- AWS Account (Free Tier)
+- AWS CLI v2 configured
+- Terraform, eksctl, kubectl
 
-* IAM user with AdministratorAccess configured
-* Billing alerts configured in AWS account
+**CI/CD & Containers:**
 
-**Day-0 Topics:**
-
-- Project Overview: Why MERN Stack for DevSecOps?
-- Understanding Enterprise Architecture: VPC, EKS, ALB, and Database layers.
-- The DevSecOps Toolchain: Introduction to Terraform, Jenkins, ArgoCD, Nexus, SonarQube, Snyk, Trivy, and Velero.
-- **Terraform Backend Setup:** Configuring S3 bucket and DynamoDB table for remote state management and locking.
-- **Cost Estimation:** Understanding AWS pricing for EKS, EC2, ECR, and S3.
+- Jenkins
+- Docker
+- Git
 
 ---
 
-## Day-1: IaC – Provisioning a Hardened EKS Cluster
+## Day-1: CI Pipeline + Shift-Left Security
 
-- Infrastructure as Code (IaC) with **Terraform**.
-- Designing a Multi-AZ VPC with Public and Private subnets, NAT Gateways, and Route Tables.
-- Provisioning Amazon **EKS** with Managed Node Groups and IAM OIDC Provider.
-- Implementing **EKS Security Best Practices:** Enabling envelope encryption, private endpoint access, and audit logging.
-- **Security Scan:** Running `Checkov` or `Terrascan` on Terraform manifests to detect misconfigurations.
-- **Terraform State Management:** Implementing remote backend with state locking.
+**Topics Covered:**
 
----
+- **Create VM Instance (t3.large, x86-64 Spot Instance)** for shift-left security tools installation
+- Jenkins setup on EC2 with proper IAM roles
+- Multi-stage Jenkins Pipeline configuration
+- **Shift-Left Security Tools Installation:**
+  - **Snyk** - Software Composition Analysis (SCA)
+  - **SonarQube** - Static Application Security Testing (SAST)
+  - **Gitleaks** - Secret scanning
+  - **OWASP Dependency-Check** - Dependency vulnerabilities
+  - **SBOM** - Software Bill of Materials — it's a formal, structured inventory
+- **Nexus** repository setup for Unified Docker + npm storages
+- **Container Security:** **Dockle** image linting
+- Break-the-build logic for High/Critical vulnerabilities
+- Git webhook automation for triggered builds
+- MERN Stack Multi-stage Dockerfiles creation (Frontend & Backend)
+- Security best practices: `.dockerignore`, non-root users, minimal layers, Alpine base images
 
-## Day-2: Containerization & Zero-Vulnerability Images
-
-- Dockerizing MERN: Multi-stage Dockerfiles for React (Frontend) and Node.js (Backend).
-- Optimizing images: Using Distroless/Alpine images to reduce attack surface.
-- **Best Practices:** Implementing `.dockerignore`, non-root users, and minimal layers.
-- **Multi-Architecture Builds:** Building x86_64 images for cost optimization on instances.
-- **Image Scanning:** Integrating **Trivy** to identify OS-level and application vulnerabilities.
-- Pushing secure images to **Amazon ECR** with lifecycle policies.
-- **Container Security:** Implementing image signing and verification.
-
----
-
-## Day-3: CI Pipeline – Automation & Shift-Left Security
-
-- Setting up the **Jenkins** CI Server on EC2 with proper IAM roles.
-- Configuring Jenkins Pipelines with Shared Libraries and parameterized builds.
-- **Secret Scanning:** Integrating **Gitleaks** to prevent credential leaks in source code.
-- **SAST:** Implementing **SonarQube** for Static Application Security Testing and Quality Gates.
-- **Artifact Management:** Setting up Sonatype Nexus as a centralized repository for build artifacts.
-- **Pipeline Security:** Securing Jenkins with RBAC, credentials management, and audit logs.
-- **Webhook Integration:** Automating builds on Git push events.
+**Learning Outcome:** End-to-end automated CI pipeline with multi-layer security scanning and secure Docker image creation
 
 ---
 
-## Day-4: Supply Chain Security – SCA & Artifact Lifecycle
+## Day-2: Infrastructure as Code & Production Networking
 
-- What is Software Composition Analysis (SCA)?
-- Integrating **Snyk** in the pipeline.
-- Scanning `package.json` and `package-lock.json` for vulnerable NPM libraries.
-- **SBOM Generation:** Creating Software Bill of Materials for compliance.
-- Automating "Break the Build" logic for High/Critical vulnerabilities.
-- **Dependency Management:** Implementing automated dependency updates with security checks.
+**Topics Covered:**
 
----
+- Multi-AZ VPC setup with Terraform (Public/Private subnets, NAT Gateway, Route Tables)
+- Amazon EKS cluster provisioning with Managed Node Groups
+- EKS Security best practices: Envelope encryption, private endpoint, audit logging
+- Security scanning with **Checkov** on Terraform manifests
+- Remote backend with state locking (S3 + DynamoDB)
+- Infrastructure validation and compliance checks
+- Cost optimization with resource tagging
+- **AWS Load Balancer Controller** installation and configuration
+- Ingress setup with path-based routing (`/` → Frontend, `/api` → Backend)
 
-## Day-5: Persistence & Disaster Recovery with Velero
+```bash
+# Create S3 bucket for Terraform state
+aws s3api create-bucket \
+  --bucket terraform-state-${AWS_ACCOUNT_ID} \
+  --region us-east-1
 
-- Kubernetes Storage: Setting up **EBS CSI Driver** for MongoDB with encryption at rest.
-- Managing State: PersistentVolumes (PV), PersistentVolumeClaims (PVC), and StorageClasses.
-- **StatefulSets:** Deploying MongoDB with proper volume management.
-- **Disaster Recovery:** Installing **Velero** for EKS backups with AWS S3 integration.
-- **Demo:** Backing up cluster snapshots to **Amazon S3** and performing a complete recovery test.
-- **Backup Strategies:** Implementing scheduled backups and retention policies.
+# Enable versioning
+aws s3api put-bucket-versioning \
+  --bucket terraform-state-${AWS_ACCOUNT_ID} \
+  --versioning-configuration Status=Enabled
 
----
+# Enable encryption
+aws s3api put-bucket-encryption \
+  --bucket terraform-state-${AWS_ACCOUNT_ID} \
+  --server-side-encryption-configuration '{
+    "Rules": [{
+      "ApplyServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+      }
+    }]
+  }'
 
-## Day-6: GitOps Excellence – Continuous Delivery with ArgoCD, Scalability & Performance Optimization
+# Create DynamoDB table for state locking
+aws dynamodb create-table \
+  --table-name terraform-state-lock \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region us-east-1
 
-- Introduction to GitOps: Push vs. Pull deployment models and benefits.
-- Installing and configuring **ArgoCD** on EKS with HA setup.
-- Syncing K8s Manifests (Deployments, Services, ConfigMaps, Secrets) from Git.
-- **Automation:** Implementing **ArgoCD Image Updater** for seamless container updates.
-- **GitOps Best Practices:** Repository structure, sync policies, and health checks.
-- **Horizontal Pod Autoscaling (HPA):** Configuring CPU and memory-based autoscaling.
-- **RBAC in ArgoCD:** Implementing role-based access control for team collaboration.
+echo "✅ Terraform backend resources created!"
 
----
+# Verify IAM user
+aws iam get-user --user-name jenkins-eks-admin-user
 
-## Day-7: Production Networking – ALB Ingress & IAM (IRSA)
+# Verify attached policies
+aws iam list-attached-user-policies --user-name jenkins-eks-admin-user
 
-- Exposing the MERN app: Setting up **AWS Load Balancer Controller** (formerly ALB Ingress Controller).
-- Path-based routing: Routing `/` to Frontend and `/api` to Backend with health checks.
-- **Security:** Implementing **IAM Roles for Service Accounts (IRSA)** for least-privilege access to AWS services.
-- SSL/TLS Termination using **AWS Certificate Manager (ACM)** with automatic certificate renewal.
-- **Network Security:** Implementing security groups and NACLs for defense in depth.
-- **DNS Management:** Configuring Route53 for domain routing and health checks.
+# Test S3 access
+aws s3 ls s3://terraform-state-${AWS_ACCOUNT_ID}
 
----
+# Test DynamoDB access
+aws dynamodb describe-table --table-name terraform-state-lock
+```
 
-## Day-8: Runtime Security & Secrets Management
-
-- **DAST:** Running **OWASP ZAP** scans against the live application for vulnerability detection.
-- **Pod Security Standards:** Implementing PSS (Restricted/Baseline) for pod-level security controls.
-- Advanced Secrets: Moving from K8s Secrets to **AWS Secrets Manager** with automatic rotation.
-- **Secrets Management:** Integrating External Secrets Operator for dynamic secret injection.
-- **Network Policies:** Restricting Pod-to-Pod communication within the cluster using Calico.
-- **Runtime Threat Detection:** Installing **Falco** for real-time security monitoring and anomaly detection.
-
----
-
-## Day-9: Full-Stack Observability – OTEL & Monitoring
-
-- Introduction to **OpenTelemetry (OTEL)** for Distributed Tracing across microservices.
-- Setting up **Prometheus** for metrics collection with ServiceMonitor and PodMonitor.
-- Visualizing system health with **Grafana** Dashboards and custom panels.
-- **Log Aggregation:** Implementing CloudWatch Container Insights or ELK Stack for centralized logging.
-- Tracing a complete request: React Frontend → Node Backend → MongoDB.
-- **Alerting:** Configuring Prometheus AlertManager with SNS integration for critical alerts.
+**Learning Outcome:** Production-ready infrastructure setup with security and compliance
 
 ---
 
-## Day-10: The Grand Finale – E2E Demo & Cleanup
+## Day-3: Auto-Scaling + GitOps + Persistent Storage
 
-- **Complete Walkthrough:** From `git push` to a live, secured production-grade application.
-- **Security Audit Report:** Generating comprehensive security posture assessment.
-- **Documentation:** Creating runbooks, architecture diagrams, and deployment guides.
-- **Cost Optimization:** Reviewing AWS Cost Explorer and implementing cost-saving strategies.
-- **Cleanup:** Running `terraform destroy` to properly teardown all AWS resources and avoid charges.
+**Topics Covered:**
+
+- **IRSA (IAM Roles for Service Accounts)** for least-privilege AWS access
+- SSL/TLS termination using **AWS Certificate Manager (ACM)**
+- Security groups and Network ACLs configuration
+- **Horizontal Pod Autoscaler (HPA)** setup
+- CPU and Memory-based autoscaling configuration & scaling verification
+- **ArgoCD** installation on EKS
+- Git repository sync for Kubernetes manifests (Deployments, Services, ConfigMaps, Secrets)
+- **ArgoCD** for automated container updates
+- GitOps repository structure and sync policies
+- EBS CSI Driver setup with encryption at rest
+- MongoDB deployment using StatefulSets
+- PersistentVolumes (PV), PersistentVolumeClaims (PVC), StorageClass configuration
+
+**Learning Outcome:** Production-grade networking with automatic scalability &nd GitOps-based continuous delivery
 
 ---
+
+## Day-4: Disaster Recovery + Secrets Management
+
+**Topics Covered:**
+
+- **Velero** installation for Kubernetes backup and restore
+- S3 integration for cluster snapshots
+- Scheduled backups with retention policies
+- **AWS Secret Manager** uses for k8s secrets to rotational secrets
+
+**Learning Outcome:** disaster recovery & enterprise-grade secrets management
+
+---
+
+## Day-5: Runtime Security
+
+**Topics Covered:**
+
+- **Pod Security Standards (PSS)** implementation (Restricted/Baseline)
+- **Network Policies** with Calico for pod-to-pod communication control
+- **Falco** installation for runtime threat detection
+- **Route53** DNS management and health checks
+- Real-time security monitoring and anomaly detection
+- Security incident response workflow
+
+**Learning Outcome:** Runtime security and
+
+---
+
+## Day-6: Full-Stack Observability + Monitoring + DAST
+
+**Topics Covered:**
+
+- **OpenTelemetry (OTEL)** for **Distributed Tracing (OTEL + Jaeger)** across microservices
+- **Prometheus** setup with ServiceMonitor and PodMonitor
+- **Grafana** dashboards for system health visualization
+- **CloudWatch Container Insights** or ELK Stack for log aggregation
+- End-to-end request tracing: React Frontend → Node Backend → MongoDB
+- **Prometheus AlertManager** configuration with **Slack** integration
+- **DAST:** **OWASP ZAP** scans to find runtime vulnerabilities (XSS, SQLi)
+- Custom metrics and alerting rules
+- Performance optimization based on metrics
+
+**Learning Outcome:** Complete observability and proactive monitoring
+
+---
+
+## Day-7: End-to-End Demo + Documentation + Cleanup
+
+**Topics Covered:**
+
+- Complete walkthrough: Git push to production-grade secured application
+- Security audit report generation
+- Architecture diagrams creation
+- Deployment runbooks and documentation
+- Cost optimization strategies implementation
+- **Terraform destroy** for complete resource cleanup
+
+**Learning Outcome:** Complete DevSecOps workflow understanding and cost management
+
+---
+
+## 🎯 What You'll Build:
+
+Production-ready MERN application with:
+
+- ✅ Automated CI/CD pipeline
+- ✅ Multiple security layers (SAST, SCA, DAST, Runtime)
+- ✅ GitOps-based deployment
+- ✅ Auto-scaling capabilities
+- ✅ Complete observability
+- ✅ Disaster recovery
+- ✅ Enterprise-grade secrets management
+
+---
+
+## 🔗 Blog Series Navigation:
+
+- **Day-1:** CI Pipeline with Shift-Left Security
+- **Day-2:** Infrastructure as Code
+- **Day-3:** Production Networking & Scaling
+- **Day-4:** Storage, Backup & GitOps
+- **Day-5:** Runtime Security & Secrets
+- **Day-6:** Observability, Monitoring & DAST
+- **Day-7:** Complete Demo & Cleanup
+
+---
+
+**Happy Learning! 🚀**

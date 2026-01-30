@@ -1,5 +1,6 @@
-## Day-4: Supply Chain Security – SCA & Dependency Scanning
+## Day-4: Production Networking + Auto-Scaling
 
 ---
 
-## What You Will Learn Today
+<!--
+## What You Will Learn Today -->

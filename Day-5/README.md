@@ -1,5 +1,6 @@
-## Day-5: Persistence & Disaster Recovery with Velero
+## Day-5: Runtime Security + Secrets Management
 
 ---
 
-## What You Will Learn Today
+<!--
+## What You Will Learn Today -->
