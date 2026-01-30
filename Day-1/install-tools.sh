@@ -33,7 +33,7 @@ echo "Default credentials: admin / admin (change password on first login)"
 # ───────────────────────────────────────────────
 echo ""
 echo "→ Installing Dockle..."
-
+    
 sudo apt-get update -qq
 VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
 curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
