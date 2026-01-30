@@ -4,9 +4,16 @@
 
 Welcome to Day 1 of the **7-Day DevSecOps MasterClass**! Today, we built a complete CI pipeline integrated with multiple shift-left security tools to catch vulnerabilities early in the development lifecycle.
 
+### Pipeline Flow
+
+<p align="center">
+    <img src="Day-1\images\jenkins_based_devops.png" alt="DevSecOps Pipeline Flow"/>
+</p>
+
 ## 📋 Topics Covered
 
 ### Infrastructure Setup
+
 - **AWS EC2 Instance Configuration**
   - Instance Type: `t3.large`
   - Architecture: `x86-64`
@@ -14,6 +21,7 @@ Welcome to Day 1 of the **7-Day DevSecOps MasterClass**! Today, we built a compl
   - Operating System: Ubuntu 24.04
 
 ### Core Components
+
 - Jenkins CI Server Setup
 - Multi-stage Jenkins Pipeline Configuration
 - IAM Role Configuration for AWS Services
@@ -21,16 +29,17 @@ Welcome to Day 1 of the **7-Day DevSecOps MasterClass**! Today, we built a compl
 
 ### Shift-Left Security Tools
 
-| Tool | Purpose | Category |
-|------|---------|----------|
-| **Snyk** | Software Composition Analysis | SCA |
-| **SonarQube** | Static Application Security Testing | SAST |
-| **Gitleaks** | Secret Scanning | Secret Detection |
-| **OWASP Dependency-Check** | Dependency Vulnerability Analysis | SCA |
-| **Syft** | Software Bill of Materials Generation | SBOM |
-| **Dockle** | Docker Image Linting | Container Security |
+| Tool                       | Purpose                               | Category           |
+| -------------------------- | ------------------------------------- | ------------------ |
+| **Snyk**                   | Software Composition Analysis         | SCA                |
+| **SonarQube**              | Static Application Security Testing   | SAST               |
+| **Gitleaks**               | Secret Scanning                       | Secret Detection   |
+| **OWASP Dependency-Check** | Dependency Vulnerability Analysis     | SCA                |
+| **Syft**                   | Software Bill of Materials Generation | SBOM               |
+| **Dockle**                 | Docker Image Linting                  | Container Security |
 
 ### Additional Components
+
 - **Nexus Repository Manager**: Unified storage for Docker images and npm packages
 - **Docker**: Container runtime for application deployment
 - **Multi-stage Dockerfiles**: Optimized builds for MERN stack applications
@@ -43,7 +52,7 @@ By the end of Day 1, you'll have:
 ✅ Break-the-build logic for High/Critical vulnerabilities  
 ✅ Secure Docker images following industry best practices  
 ✅ Automated vulnerability reporting and tracking  
-✅ Integration with artifact repositories  
+✅ Integration with artifact repositories
 
 ## 🛠️ Installation & Setup
 
@@ -96,6 +105,7 @@ Successfully created EC2 spot instances for cost-effective infrastructure.
 ![Security Group Inbound Rules](./images/SG-Inbound-Rules.png)
 
 Configured inbound rules for:
+
 - Jenkins (8080)
 - SonarQube (9000)
 - Nexus (8081)
@@ -113,6 +123,7 @@ Docker version 28.2.2 successfully installed on Ubuntu 22.04.1.
 ![Docker Containers Running](./images/docker_container_running.png)
 
 All essential containers running:
+
 - Jenkins (Port 8080)
 - Nexus (Port 8081)
 - SonarQube (Port 9000)
@@ -122,6 +133,7 @@ All essential containers running:
 ![Docker Images](./images/images_container.png)
 
 Local Docker images including:
+
 - Backend e-commerce images (178MB)
 - Frontend e-commerce images (63.4MB)
 
@@ -130,6 +142,7 @@ Local Docker images including:
 ![Jenkins Dashboard](./images/jenkins_dashboard_two.png)
 
 Jenkins pipeline "Gitops-Ecomm-CI-Pipeline" configured with:
+
 - Last successful build: 2 min 46 sec ago
 - Build #30 completed
 - 55 seconds duration
@@ -139,6 +152,7 @@ Jenkins pipeline "Gitops-Ecomm-CI-Pipeline" configured with:
 ![Jenkins Status](./images/jenkins_status.png)
 
 Jenkins service actively running with:
+
 - Process ID: 6293 (Java)
 - Memory Usage: 634.0M
 - Active since: Fri 2026-01-30 08:23:05 UTC
@@ -148,6 +162,7 @@ Jenkins service actively running with:
 ![Jenkins Credentials](./images/jenkins_creds.png)
 
 Configured credentials:
+
 - `sonar-cred` - SonarQube authentication
 - `nvd-api-key` - NVD vulnerability database API
 - `snyk-cred` - Snyk security scanning
@@ -159,6 +174,7 @@ Configured credentials:
 ![SonarQube Results](./images/sonarqube_result.png)
 
 Code quality metrics:
+
 - **Security Issues**: 1 (E rating)
 - **Reliability Issues**: 16 (C rating)
 - **Maintainability**: 74 (A rating)
@@ -171,6 +187,7 @@ Code quality metrics:
 ![Nexus UI](./images/nexus_ui.png)
 
 Nexus Repository Manager showing:
+
 - Total Components: 0 (Usage limit: 40,000)
 - Requests Per Day: 0 (Usage limit: 100,000)
 - System Health: Active
@@ -180,6 +197,7 @@ Nexus Repository Manager showing:
 ![Nexus Config File](./images/nexus_config_file_jenkins.png)
 
 NPM registry configuration:
+
 ```
 registry=http://43.205.130.113:8081/repository/npm-hosted/
 //43.205.130.113:8081/repository/npm-hosted/:_auth=${NPM_AUTH}
@@ -191,6 +209,7 @@ always-auth=true
 ![NPM Hosted UI](./images/npm_hosted_ui.png)
 
 Nexus npm-hosted repository showing:
+
 - vite-react-shadcnts-1.0.0.tgz
 - showmoore-server-1.0.0.tgz
 
@@ -199,6 +218,7 @@ Nexus npm-hosted repository showing:
 ![ECR View](./images/ECR_View.png)
 
 Private repositories created:
+
 - `ecom/frontend-ecommerce-mern` (Created: Jan 30, 2026, 11:23:49)
 - `ecom/backend-ecommerce-mern` (Created: Jan 30, 2026, 11:24:04)
 
@@ -207,6 +227,7 @@ Private repositories created:
 ![Backend ECR](./images/backend_ecr.png)
 
 Backend repository with 2 images:
+
 - Tag 28 (54.94 MB) - Pushed: Jan 30, 2026, 17:53:07
 - Tag 27 (54.94 MB) - Pushed: Jan 30, 2026, 17:46:22
 
@@ -215,6 +236,7 @@ Backend repository with 2 images:
 ![Frontend ECR](./images/frontend_Ecr.png)
 
 Frontend repository with 1 image:
+
 - Tags 27, 28 (26.36 MB) - Pushed: Jan 30, 2026, 17:46:14
 
 ### 16. OWASP Dependency-Check Report
@@ -222,12 +244,14 @@ Frontend repository with 1 image:
 ![OWASP Dependency Report](./images/OWASP_Dependency_report.png)
 
 Vulnerability severity distribution:
+
 - **Critical**: 1
 - **High**: 9
 - **Medium**: 18
 - **Low**: 6
 
 Key vulnerabilities detected:
+
 - `@babel/runtime@7.25.9` - Multiple CVEs (High severity)
 - `@eslint/plugin-kit@0.2.3` - Multiple CVEs (High/Low severity)
 - `axios.js` - CVE-2025-56754 (High severity)
@@ -237,6 +261,7 @@ Key vulnerabilities detected:
 ![Dependency Check Trend](./images/dp_report_view.png)
 
 Trend analysis across builds:
+
 - Unassigned: 18 (stable)
 - Low: 6 (stable)
 - Medium: 18 (stable)
@@ -250,6 +275,7 @@ Build comparison (#26 → #27 → #28) showing consistent vulnerability tracking
 ![Pipeline Side Reports](./images/pipeline_side_report.png)
 
 Available reports in Jenkins:
+
 - Dependency-Check (2 instances)
 - Pipeline Overview
 - Open Blue Ocean
@@ -261,6 +287,7 @@ Available reports in Jenkins:
 ![Pipeline Stages Graph](./images/Pipeline_stages_view_graph.png)
 
 Complete pipeline execution flow:
+
 1. **Declarative: Tool Install** - 208ms
 2. **Initial Checks** - 2s
 3. **Security & Syntax** - 14s
@@ -277,6 +304,7 @@ Complete pipeline execution flow:
 ![All Report Screenshots](./images/all_report_screenshots.png)
 
 Build artifacts generated:
+
 - `snyk-frontend.json` (43.19 KB)
 - `dockle-backend.json` (616 B)
 - `dockle-frontend.json` (4.50 KB)
@@ -326,6 +354,7 @@ Build artifacts generated:
 ## 🔒 Security Best Practices Implemented
 
 ### Docker Security
+
 - ✅ Multi-stage builds for minimal image size
 - ✅ Alpine-based images (lightweight & secure)
 - ✅ Non-root user execution
@@ -334,6 +363,7 @@ Build artifacts generated:
 - ✅ No secrets in images
 
 ### Pipeline Security
+
 - ✅ Break-the-build for High/Critical vulnerabilities
 - ✅ Credential management via Jenkins Credentials Store
 - ✅ Secret scanning with Gitleaks
@@ -342,6 +372,7 @@ Build artifacts generated:
 - ✅ Dependency vulnerability checks
 
 ### Access Control
+
 - ✅ IAM roles for AWS services
 - ✅ Security groups with least privilege
 - ✅ Nexus authentication
@@ -350,16 +381,16 @@ Build artifacts generated:
 
 ## 📊 Key Metrics
 
-| Metric | Value |
-|--------|-------|
-| Pipeline Stages | 8 |
-| Security Tools | 6 |
-| Average Build Time | ~5 minutes |
-| Docker Image Size (Backend) | 178 MB |
-| Docker Image Size (Frontend) | 63.4 MB |
-| Lines of Code Analyzed | 8.2K |
-| Total Vulnerabilities Found | 34 |
-| Critical Vulnerabilities | 1 |
+| Metric                       | Value      |
+| ---------------------------- | ---------- |
+| Pipeline Stages              | 8          |
+| Security Tools               | 6          |
+| Average Build Time           | ~5 minutes |
+| Docker Image Size (Backend)  | 178 MB     |
+| Docker Image Size (Frontend) | 63.4 MB    |
+| Lines of Code Analyzed       | 8.2K       |
+| Total Vulnerabilities Found  | 34         |
+| Critical Vulnerabilities     | 1          |
 
 ## 🎓 Key Takeaways
 
@@ -403,4 +434,4 @@ Build artifacts generated:
 
 ---
 
-*Happy DevSecOps Learning! 🔐*
+_Happy DevSecOps Learning! 🔐_
