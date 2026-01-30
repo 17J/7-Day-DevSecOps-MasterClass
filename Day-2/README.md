@@ -1,5 +1,5 @@
-## Day-2: CI/CD Pipeline + Shift-Left Security
+## Day-2: Infrastructure as Code
 
----
+<!-- ---
 
-## What You Will Learn Today
+## What You Will Learn Today -->
