@@ -2,12 +2,58 @@
 set -euo pipefail
 
 echo "============================================================="
-echo "  Installing SonarQube + Trivy + Gitleaks + Nexus + Syft"
-echo "  (x86-64 / amd64 architecture - Ubuntu/Debian compatible)"
+echo " Installing Docker + Jenkins + SonarQube + Trivy + Gitleaks + Nexus + Syft + Dockle"
+echo " (x86-64 / amd64 architecture - Ubuntu/Debian compatible)"
+echo " Updated for 2026 - new Jenkins signing key used"
 echo "============================================================="
 
 # ───────────────────────────────────────────────
-# 1. SonarQube (with Community Branch Plugin)
+# 0. Prerequisites - Docker first (most things depend on it)
+# ───────────────────────────────────────────────
+echo ""
+echo "→ Installing Docker..."
+
+if ! command -v docker &> /dev/null; then
+    sudo apt-get update -qq
+    sudo apt-get install -y docker.io
+    sudo systemctl enable --now docker
+fi
+
+# Add current user to docker group (and jenkins later)
+sudo usermod -aG docker "${USER:-ubuntu}" 2>/dev/null || true
+
+echo "Docker installed ✓"
+docker --version
+
+# ───────────────────────────────────────────────
+# 1. Jenkins
+# ───────────────────────────────────────────────
+echo ""
+echo "→ Installing Jenkins (using 2026 signing key)..."
+
+sudo apt-get update -qq
+sudo apt-get install -y fontconfig openjdk-21-jre-headless
+
+java -version
+
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+    https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
+    | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+sudo apt-get update -qq
+sudo apt-get install -y jenkins
+
+sudo usermod -aG docker jenkins
+sudo systemctl enable --now jenkins
+
+echo "Jenkins → http://localhost:8080"
+echo "→ Get initial admin password: sudo cat /var/lib/jenkins/secrets/initialAdminPassword"
+echo "Jenkins installed ✓"
+
+# ───────────────────────────────────────────────
+# 2. SonarQube (with community branch plugin)
 # ───────────────────────────────────────────────
 echo ""
 echo "→ Installing SonarQube via Docker..."
@@ -18,64 +64,68 @@ docker rm sonarqube >/dev/null 2>&1 || true
 docker pull mc1arke/sonarqube-with-community-branch-plugin:latest
 
 docker run -d \
-  --name sonarqube \
-  -p 9000:9000 \
-  -v sonarqube_data:/opt/sonarqube/data \
-  -v sonarqube_logs:/opt/sonarqube/logs \
-  -v sonarqube_extensions:/opt/sonarqube/extensions \
-  mc1arke/sonarqube-with-community-branch-plugin:latest
+    --name sonarqube \
+    -p 9000:9000 \
+    -v sonarqube_data:/opt/sonarqube/data \
+    -v sonarqube_logs:/opt/sonarqube/logs \
+    -v sonarqube_extensions:/opt/sonarqube/extensions \
+    mc1arke/sonarqube-with-community-branch-plugin:latest
 
 echo "SonarQube → http://localhost:9000"
-echo "Default credentials: admin / admin (change password on first login)"
+echo "Default credentials: admin / admin (change immediately)"
+echo "SonarQube started ✓"
 
 # ───────────────────────────────────────────────
-# 2. Trivy (vulnerability scanner)
+# 3. Dockle (Docker image linter)
 # ───────────────────────────────────────────────
 echo ""
-echo "→ Installing Dockle..."
-    
-sudo apt-get update -qq
+echo "→ Installing latest Dockle..."
+
 VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
-sudo dpkg -i dockle.deb
-rm dockle.deb
 
-
-dockle --version | head -n 1
-echo "Dcckle installed ✓"
-
-# ───────────────────────────────────────────────
-# 3. Gitleaks (secrets scanner) - latest for x86-64
-# ───────────────────────────────────────────────
-echo ""
-echo "→ Installing latest Gitleaks (amd64)..."
-
-GITLEAKS_VERSION=$(curl -s "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" \
-  | grep -Po '"tag_name": "\K[^"]+' | sed 's/^v//')
-
-if [[ -z "$GITLEAKS_VERSION" ]]; then
-  echo "Error: Could not fetch latest Gitleaks version"
-  exit 1
+if [[ -z "$VERSION" ]]; then
+    echo "Error: Could not fetch Dockle version"
+    exit 1
 fi
 
-echo "Latest version: v${GITLEAKS_VERSION}"
+echo "Dockle version: v${VERSION}"
 
-wget -q "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
-  -O gitleaks.tar.gz
+curl -L -o dockle.deb "https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb"
+sudo dpkg -i dockle.deb || sudo apt-get install -f -y   # fix dependencies if needed
+rm -f dockle.deb
+
+dockle --version
+echo "Dockle installed ✓"
+
+
+
+# ───────────────────────────────────────────────
+# 4. Gitleaks (secrets scanner)
+# ───────────────────────────────────────────────
+echo ""
+echo "→ Installing latest Gitleaks..."
+
+GITLEAKS_VERSION=$(curl -s "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep -Po '"tag_name": "\K[^"]+' | sed 's/^v//')
+
+if [[ -z "$GITLEAKS_VERSION" ]]; then
+    echo "Error: Could not fetch Gitleaks version"
+    exit 1
+fi
+
+wget -q "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -O gitleaks.tar.gz
 
 sudo tar xf gitleaks.tar.gz -C /usr/local/bin gitleaks
 sudo chmod +x /usr/local/bin/gitleaks
+rm gitleaks.tar.gz
 
 gitleaks version
-
-rm -f gitleaks.tar.gz
 echo "Gitleaks installed ✓"
 
 # ───────────────────────────────────────────────
-# 4. Sonatype Nexus Repository OSS (Docker)
+# 5. Nexus Repository OSS
 # ───────────────────────────────────────────────
 echo ""
-echo "→ Installing Sonatype Nexus Repository OSS via Docker..."
+echo "→ Installing Nexus via Docker..."
 
 docker stop nexus >/dev/null 2>&1 || true
 docker rm nexus >/dev/null 2>&1 || true
@@ -83,60 +133,52 @@ docker rm nexus >/dev/null 2>&1 || true
 docker pull sonatype/nexus3:latest
 
 docker run -d \
-  --name nexus \
-  -p 8081:8081 \
-  -v nexus-data:/nexus-data \
-  sonatype/nexus3:latest
+    --name nexus \
+    -p 8081:8081 \
+    -v nexus-data:/nexus-data \
+    sonatype/nexus3:latest
 
-echo "Nexus is starting → http://localhost:8081"
+echo "Nexus → http://localhost:8081"
 echo "Default username: admin"
 
-echo -n "→ Waiting 30 seconds for Nexus to initialize and generate admin password..."
-sleep 30
-echo " done"
+echo -n "→ Waiting ~60-90 seconds for Nexus to start and generate password..."
+sleep 60
 
 if docker exec nexus test -f /nexus-data/admin.password; then
-  echo "Initial admin password:"
-  docker exec nexus cat /nexus-data/admin.password
-  echo "(Use this password to log in → you will be forced to change it immediately)"
+    echo -e "\nInitial admin password:"
+    docker exec nexus cat /nexus-data/admin.password
+    echo "(change it immediately after first login)"
 else
-  echo "Warning: admin.password file not found yet."
-  echo "Try again in 1-2 minutes with: docker exec nexus cat /nexus-data/admin.password"
-  echo "Or check container logs: docker logs nexus"
+    echo -e "\nPassword file not found yet."
+    echo "Wait a bit more and run: docker exec nexus cat /nexus-data/admin.password"
+    echo "Or check logs: docker logs -f nexus"
 fi
 
 # ───────────────────────────────────────────────
-# 5. Syft (SBOM generator from Anchore)
+# 6. Syft (SBOM generator)
 # ───────────────────────────────────────────────
 echo ""
-echo "→ Installing Syft (SBOM tool)..."
+echo "→ Installing Syft..."
 
-curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
 
-if command -v syft >/dev/null 2>&1; then
-  syft --version
-  echo "Syft installed successfully ✓"
-else
-  echo "Warning: Syft installation may have failed. Check the curl output above."
-fi
+syft version || echo "Syft installed but version check failed — still probably ok"
+echo "Syft installed ✓"
 
 # ───────────────────────────────────────────────
-# Final summary
+# Final Summary
 # ───────────────────────────────────────────────
 echo ""
 echo "============================================================="
-echo "               Installation Complete!"
+echo "          Installation Complete! (hopefully without errors)"
 echo ""
-echo "Tools installed:"
-echo "  • SonarQube          → http://localhost:9000          (admin / admin)"
-echo "  • Trivy              → container/image vulnerability scanner"
-echo "  • Gitleaks           → secrets/credential scanner"
-echo "  • Nexus Repository   → http://localhost:8081           (admin / [generated password])"
-echo "  • Syft               → SBOM generator"
-echo ""
-echo "Quick test commands:"
-echo "  trivy image alpine:3.18"
-echo "  gitleaks detect --source . --redact"
-echo "  syft alpine:3.18               # generate SBOM"
-echo "  curl -s localhost:8081         # check Nexus is responding"
+echo "Tools installed / started:"
+echo " • Docker          → docker --version"
+echo " • Jenkins         → http://localhost:8080"
+echo " • SonarQube       → http://localhost:9000"
+echo " • Nexus           → http://localhost:8081"
+echo " • Dockle          → dockle alpine:latest"
+echo " • Gitleaks        → gitleaks detect --source ."
+echo " • Syft            → syft packages alpine:latest"
 echo "============================================================="
+

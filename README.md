@@ -223,3 +223,230 @@ Production-ready MERN application with:
 ---
 
 **Happy Learning! 🚀**
+
+
+
+nodejs-23.10.0
+squ_9e05fecb76af0698b51bd0329de897f3b84ec42d ==> sonartoken ==sonar-cred
+c7f19fa6-6044-4468-aa52-3c1ef21a5e4c ==> snyk token == snyk-cred
+AKIAVRUVTQW3HZBVUBXM ==> access key
+Zylx6hXGB0CVVJVr+zSpKOHhNYif+0KPKrj5sZ0H ==> secret key
+
+
+
+pipeline {
+    agent any
+    tools {
+        nodejs "nodejs-23.10"
+    }
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        FRONTEND_IMAGE_NAME = ' ecom/frontend-ecommerce-mern'
+        BACKEND_IMAGE_NAME = ' ecom/backend-ecommerce-mern'
+        IMAGE_TAG = "latest"
+        DOCKER_REGISTRY = ""
+        DOCKER_USERS = "17rj"
+        K8S_NAMESPACE = 'demoapps'
+    }
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/17J/DevSecOps-Security-Pipeline.git'
+            }
+        }
+        stage('Gitleaks Secret Scanning') {
+            steps {
+                // Replace --exit-code 0 to 1 into RealTime Pipeline
+                sh '''
+                    gitleaks detect --no-git --verbose --redact \
+                    --exit-code 0 --report-format json --report-path gitleaks-report.json 
+                '''
+            }
+        }
+        stage('Install Dependencies & Lint') {
+            parallel {
+                stage('Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                npm ci
+                                npm run lint || true         
+                                npm run build                 
+                            '''
+                        }
+                    }
+                }
+                stage('Backend') {
+                    steps {
+                        dir('backend') {
+                            sh 'find . -name "*.js" -exec node --check {} +'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Snyk SCA Scan') {
+            parallel {
+                stage('Frontend') {
+                    steps {
+                        dir('frontend') {
+                            withCredentials([string(credentialsId: 'SNYK_Cred', variable: 'SNYK_TOKEN')]) {
+                                sh '''
+                                    snyk auth $SNYK_TOKEN
+                                    snyk test --severity-threshold=high \
+                                    --json-file-output=snyk-frontend.json || true
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('Backend') {
+                    steps {
+                        dir('backend') {
+                            withCredentials([string(credentialsId: 'SNYK_Cred', variable: 'SNYK_TOKEN')]) {
+                                sh '''
+                                    snyk auth $SNYK_TOKEN
+                                    snyk test --severity-threshold=high \
+                                    --json-file-output=snyk-backend.json || true
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Sonarqube Code Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh '''
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=devsecops-pipeline \
+                        -Dsonar.sources=frontend/src,backend/ \
+                        -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/** \
+                        -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info,backend/coverage/lcov.info
+                    '''
+                }
+            }
+        }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 20, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        stage('Trivy Filesystem Scan') {
+            parallel {
+                // Replace --exit-code 0 to 1 into RealTime Pipeline
+                stage('Frontend FS') {
+                    steps {
+                        sh 'trivy fs --severity HIGH,CRITICAL --exit-code 0 --format table -o trivy-fs-frontend.html frontend/'
+                    }
+                }
+                stage('Backend FS') {
+                    steps {
+                        sh 'trivy fs --severity HIGH,CRITICAL --exit-code 0 --format table -o trivy-fs-backend.html backend/'
+                    }
+                }
+            }
+        }
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Build Client
+                    sh """
+                        docker build -t ${FRONTEND_IMAGE_NAME}:${IMAGE_TAG} \
+                            --file client/Dockerfile ./client
+                    """
+                    sh """
+                        docker tag ${FRONTEND_IMAGE_NAME}:${IMAGE_TAG} \
+                            81492102582.dkr.ecr.ap-south-1.amazonaws.com/ecom/frontend-ecommerce-mern:latest
+                    """
+                    // Build Server 
+                    sh """
+                        docker build -t ${BACKEND_IMAGE_NAME}:${IMAGE_TAG} \
+                            --file server/Dockerfile ./server
+                    """
+                    sh """
+                        docker tag ${BACKEND_IMAGE_NAME}:${IMAGE_TAG} \
+                            381492102582.dkr.ecr.ap-south-1.amazonaws.com/ecom/backend-ecommerce-mern:latest
+                    """
+                }
+            }
+        }
+        stage('Dockle Image Scan') {
+            // Replace --exit-code 0 to 1 into RealTime Pipeline
+            steps {
+                script {
+                    // Scan client
+                    sh """
+                    dockle --exit-code 0 --exit-level warn \
+                        ${DOCKER_USERS}/${FRONTEND_IMAGE_NAME}:latest || true
+                    """
+                    // Scan server
+                    sh """
+                    dockle --exit-code 0 --exit-level warn \
+                        ${DOCKER_USERS}/${BACKEND_IMAGE_NAME}:latest || true
+                    """
+                }
+            }
+        }
+        stage('Generate SBOM') {
+            parallel {
+                stage('Frontend SBOM') {
+                    steps {
+                        sh """
+                    # Using Syft
+                    syft ${DOCKER_USERS}/${FRONTEND_IMAGE_NAME}:latest \
+                        -o cyclonedx-json > sbom-frontend.json
+                """
+                        archiveArtifacts artifacts: 'sbom-frontend*.json'
+                    }
+                }
+                stage('Backend SBOM') {
+                    steps {
+                        sh """
+                    syft ${DOCKER_USERS}/${BACKEND_IMAGE_NAME}:latest \
+                        -o cyclonedx-json > sbom-backend.json
+                """
+                        archiveArtifacts artifacts: 'sbom-backend*.json'
+                    }
+                }
+            }
+        }
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-creds', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                      
+                        // Push Frontend
+                        sh "docker push 381492102582.dkr.ecr.ap-south-1.amazonaws.com/ecom/frontend-ecommerce-mern:latest"
+                        // Push Backend
+                        sh "docker push 381492102582.dkr.ecr.ap-south-1.amazonaws.com/ecom/backend-ecommerce-mern:latest"
+                    }
+                }
+            }
+        }
+    post {
+        always {
+            echo "Pipeline execution completed"
+            sh """
+                docker rmi ${DOCKER_USERS}/${FRONTEND_IMAGE_NAME}:${IMAGE_TAG} || true
+                docker rmi ${DOCKER_USERS}/${BACKEND_IMAGE_NAME}:${IMAGE_TAG} || true
+            """
+        }
+        success {
+            echo "✅ DevSecOps Pipeline: SUCCESS"
+            // Add Slack/Email notification here if needed
+        }
+        failure {
+            echo "❌ DevSecOps Pipeline: FAILED"
+            // Add Slack/Email notification here if needed
+        }
+    }
+}
